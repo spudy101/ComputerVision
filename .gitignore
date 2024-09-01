@@ -1,0 +1,36 @@
+# Ignorar entornos virtuales
+env/
+.venv/
+venv/
+
+# Ignorar archivos de Python bytecode
+*.pyc
+*.pyo
+__pycache__/
+
+# Ignorar archivos de configuración y bases de datos locales
+*.db
+*.sqlite3
+
+# Ignorar archivos de log
+*.log
+
+# Ignorar archivos de caché y otros temporales
+*.tmp
+*.swp
+*.swo
+*.swn
+*.bak
+*.old
+
+# Ignorar archivos de configuración específicos del entorno de desarrollo
+.vscode/
+.idea/
+*.iml
+
+
+# Ignorar archivos de dependencia
+*.lock
+
+# Ignorar el archivo README si no quieres versionarlo
+# README.md

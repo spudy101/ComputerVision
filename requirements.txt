@@ -1,0 +1,19 @@
+numpy
+pycocotools
+super-gradients
+roboflow
+supervision
+ultralytics
+jupyter
+opencv-python
+matplotlib
+scipy
+pillow
+geocoder
+
+# instalar manualmente
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
+
+
+
+
