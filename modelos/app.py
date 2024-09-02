@@ -58,7 +58,7 @@ def detect_and_send_to_api():
 
                         # Datos a enviar a la API
                         data = {
-                            "descripcion": f"{class_name.capitalize()} detectado",
+                            "descripcion": f"{class_name.capitalize()}",
                             "latitud": latitud,
                             "longitud": longitud,
                             "image_data": jpg_as_text,
