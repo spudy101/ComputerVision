@@ -6,8 +6,11 @@ import base64
 import time
 
 # Configuraciones ajustables
-TARGET_CLASS = 'cell phone'  # Clase a detectar (por ejemplo: 'person', 'car', 'dog', etc.)
-DETECTION_INTERVAL = 1  # Intervalo de tiempo entre detecciones en segundos
+TARGET_CLASSES = {
+    'cell phone': '0g1egwaIxSuH3e1P2CA5',  # ID de categoría para "Accidente Automovilístico"
+    'clock': 'dXhs5LKQsiQxlFGBVQVX'        # ID de categoría para "Crímenes"
+}
+DETECTION_INTERVAL = 5  # Intervalo de tiempo entre detecciones en segundos
 
 # Cargar el modelo de YOLO
 model = YOLO('computerVision/yolov8n.pt')
@@ -31,22 +34,16 @@ def detect_and_send_to_api():
         # Realizar la detección en el frame actual
         results = model(frame)
 
-        # Imprimir información de las detecciones
-        print("Detecciones procesadas:")
-        for i, result in enumerate(results):
-            print(f"Resultado {i+1}: {result}")
-            print(f"Bounding Boxes: {result.boxes}")
-            print(f"Clases detectadas: {result.names}")
-
-        # Verificar si alguna de las detecciones es de la clase objetivo
-        target_detected = False
+        # Verificar si alguna de las detecciones es de una clase objetivo
         for result in results:
             if result.boxes:
                 for box in result.boxes:
                     class_id = int(box.cls[0])
-                    if result.names[class_id] == TARGET_CLASS:
-                        target_detected = True
-                        print(f"{TARGET_CLASS.capitalize()} detectado. Procesando...")
+                    class_name = result.names[class_id]
+                    
+                    if class_name in TARGET_CLASSES:
+                        category_id = TARGET_CLASSES[class_name]
+                        print(f"{class_name.capitalize()} detectado. Procesando...")
 
                         # Codificar el frame actual como imagen JPEG
                         ret, buffer = cv2.imencode('.jpg', frame)
@@ -61,10 +58,11 @@ def detect_and_send_to_api():
 
                         # Datos a enviar a la API
                         data = {
-                            "descripcion": f"{TARGET_CLASS.capitalize()} detectado",
+                            "descripcion": f"{class_name.capitalize()} detectado",
                             "latitud": latitud,
                             "longitud": longitud,
-                            "image_data": jpg_as_text
+                            "image_data": jpg_as_text,
+                            "id_categoria": category_id
                         }
 
                         # Enviar los datos a la API
@@ -75,11 +73,8 @@ def detect_and_send_to_api():
                         else:
                             print(f"Error al enviar la detección a la API: {response.status_code}, {response.text}")
 
-        if not target_detected:
-            print(f"No se detectó un(a) {TARGET_CLASS} en este frame.")
-
         # Mostrar el frame con las detecciones
-        cv2.imshow(f'YOLOv8 - Detección de {TARGET_CLASS}', results[0].plot())
+        cv2.imshow('YOLOv8 - Detección', results[0].plot())
 
         # Esperar el intervalo de tiempo configurado antes de continuar
         time.sleep(DETECTION_INTERVAL)
