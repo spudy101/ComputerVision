@@ -7,13 +7,18 @@ import time
 
 # Configuraciones ajustables
 TARGET_CLASSES = {
-    'cell phone': '0g1egwaIxSuH3e1P2CA5',  # ID de categoría para "Accidente Automovilístico"
-    'clock': 'dXhs5LKQsiQxlFGBVQVX'        # ID de categoría para "Crímenes"
+    'cell phone': '0g1egwaIxSuH3e1P2CA5',  # ID de categoría para "Cell Phone"
+    'clock': 'dXhs5LKQsiQxIFGBVQVX'        # ID de categoría para "Clock"
 }
-DETECTION_INTERVAL = 5  # Intervalo de tiempo entre detecciones en segundos
+DETECTION_INTERVAL = 1  # Intervalo de tiempo entre detecciones en segundos
 
 # Cargar el modelo de YOLO
 model = YOLO('computerVision/yolov8n.pt')
+
+# Imprimir todas las clases que el modelo reconoce
+print("El modelo reconoce las siguientes clases:")
+for class_id, class_name in model.names.items():
+    print(f"ID: {class_id}, Nombre: {class_name}")
 
 def get_current_location():
     g = geocoder.ip('me')
@@ -34,14 +39,19 @@ def detect_and_send_to_api():
         # Realizar la detección en el frame actual
         results = model(frame)
 
-        # Verificar si alguna de las detecciones es de una clase objetivo
+        # Filtrar detecciones y solo mostrar las clases objetivo
         for result in results:
             if result.boxes:
+                # Crear una lista temporal para almacenar las boxes filtradas
+                filtered_boxes = []
+
                 for box in result.boxes:
                     class_id = int(box.cls[0])
                     class_name = result.names[class_id]
-                    
+
                     if class_name in TARGET_CLASSES:
+                        filtered_boxes.append(box)
+
                         category_id = TARGET_CLASSES[class_name]
                         print(f"{class_name.capitalize()} detectado. Procesando...")
 
@@ -73,8 +83,21 @@ def detect_and_send_to_api():
                         else:
                             print(f"Error al enviar la detección a la API: {response.status_code}, {response.text}")
 
-        # Mostrar el frame con las detecciones
-        cv2.imshow('YOLOv8 - Detección', results[0].plot())
+                # Solo dibujar las boxes filtradas en el frame
+                for box in filtered_boxes:
+                    # Extraer las coordenadas del bounding box
+                    x1, y1, x2, y2 = map(int, box.xyxy[0])
+                    confidence = box.conf[0]
+                    class_id = int(box.cls[0])
+                    class_name = result.names[class_id]
+
+                    # Dibujar la caja alrededor del objeto detectado
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
+                    cv2.putText(frame, f'{class_name} {confidence:.2f}', (x1, y1 - 10),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
+
+        # Mostrar el frame con las detecciones filtradas
+        cv2.imshow('YOLOv8 - Detección', frame)
 
         # Esperar el intervalo de tiempo configurado antes de continuar
         time.sleep(DETECTION_INTERVAL)
