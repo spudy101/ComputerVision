@@ -10,7 +10,7 @@ TARGET_CLASSES = {
     'cell phone': '0g1egwaIxSuH3e1P2CA5',  # ID de categoría para "Cell Phone"
     'clock': 'dXhs5LKQsiQxIFGBVQVX'        # ID de categoría para "Clock"
 }
-DETECTION_INTERVAL = 1  # Intervalo de tiempo entre detecciones en segundos
+DETECTION_INTERVAL = 5  # Intervalo de tiempo entre detecciones en segundos
 
 # Cargar el modelo de YOLO
 model = YOLO('computerVision/yolov8n.pt')
@@ -76,12 +76,15 @@ def detect_and_send_to_api():
                         }
 
                         # Enviar los datos a la API
-                        response = requests.post('http://127.0.0.1:5000/api/add_detecciones', json=data)
+                        try:
+                            response = requests.post('http://127.0.0.1:5000/api/add_detecciones', json=data)
 
-                        if response.status_code == 200:
-                            print(f"Detección enviada a la API con éxito")
-                        else:
-                            print(f"Error al enviar la detección a la API: {response.status_code}, {response.text}")
+                            if response.status_code == 200:
+                                print(f"Detección enviada a la API con éxito")
+                            else:
+                                print(f"Error al enviar la detección a la API: {response.status_code}, {response.text}")
+                        except requests.exceptions.RequestException as e:
+                            print(f"Error al intentar conectar con la API: {e}")
 
                 # Solo dibujar las boxes filtradas en el frame
                 for box in filtered_boxes:
